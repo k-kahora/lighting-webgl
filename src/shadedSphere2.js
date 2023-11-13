@@ -190,13 +190,13 @@ function render() {
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
 
+    gl.uniform3fv( gl.getUniformLocation(program,
+        "uEyePosition"), eye );
     modelViewMatrix = lookAt(eye, at , up);
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
     nMatrix =normalMatrix(modelViewMatrix, true );
 
-    gl.uniform3fv( gl.getUniformLocation(program,
-        "uEyePosition"), eye );
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));

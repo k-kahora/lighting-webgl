@@ -7,6 +7,8 @@ var program;
 var numTimesToSubdivide = 3;
 
 var index = 0;
+var flat = false
+var current_light = 1
 
 var positionsArray = [];
 var normalsArray = [];
@@ -39,9 +41,9 @@ var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
 var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
 
 var materialAmbient = vec4(1.0, 0.0, 1.0, 1.0);
-var materialDiffuse = vec4(1.0, 0.8, 0.0, 1.0);
+var materialDiffuse = vec4(1.0, 0.0, 0.7, 1.0);
 var materialSpecular = vec4(1.0, 1.0, 1.0, 1.0);
-var materialShininess = 20.0;
+var materialShininess = 5.0;
 
 var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -57,17 +59,29 @@ var up = vec3(0.0, 1.0, 0.0);
 
 function triangle(a, b, c) {
 
+
      positionsArray.push(a);
      positionsArray.push(b);
      positionsArray.push(c);
 
      // normals are vectors
+	if (flat) {
+
+		var t1 = subtract(b, a);
+		var t2 = subtract(c, a);
+		var normal = normalize(cross(t2, t1));
+		normalsArray.push(vec4(normal[0], normal[1], normal[2], 0.0));
+		normalsArray.push(vec4(normal[0], normal[1], normal[2], 0.0));
+		normalsArray.push(vec4(normal[0], normal[1], normal[2], 0.0));
+		index += 3;
+	} else {
 
      normalsArray.push(vec4(a[0],a[1], a[2], 0.0));
      normalsArray.push(vec4(b[0],b[1], b[2], 0.0));
      normalsArray.push(vec4(c[0],c[1], c[2], 0.0));
 
      index += 3;
+	}
 }
 
 
@@ -100,7 +114,7 @@ function tetrahedron(a, b, c, d, n) {
     divideTriangle(a, c, d, n);
 }
 
-window.onload = function init() {
+window.onload = function init(lighting_type) {
 
     canvas = document.getElementById("gl-canvas");
 
@@ -116,7 +130,18 @@ window.onload = function init() {
     //
     //  Load shaders and initialize attribute buffers
     //
-    program = initShaders(gl, "vertex-shader", "fragment-shader");
+	switch (lighting_type) {
+		case 1:
+			program = initShaders(gl, "vertex-shader-phong", "fragment-shader-phong");
+			break;
+		case 2:
+			program = initShaders(gl, "vertex-shader-gourad", "fragment-shader-gourad");			
+			break;
+		default:
+			program = initShaders(gl, "vertex-shader-phong", "fragment-shader-phong");
+			break;
+	}
+
     gl.useProgram(program);
 
 
@@ -152,20 +177,44 @@ window.onload = function init() {
     document.getElementById("Button3").onclick = function(){theta -= dr;};
     document.getElementById("Button4").onclick = function(){phi += dr;};
     document.getElementById("Button5").onclick = function(){phi -= dr;};
+	document.getElementById("Phong").onclick = function(){
+		flat = false
+    	tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+        index = 0;
+        positionsArray = [];
+        normalsArray = [];
+		init(1)
+	};
+	document.getElementById("Flat").onclick = function(){
+		flat = true
+    	tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+        index = 0;
+        positionsArray = [];
+        normalsArray = [];
+        init(1);
+	};
+	document.getElementById("Ghoro").onclick = function(){
+		flat = false
+    	tetrahedron(va, vb, vc, vd, numTimesToSubdivide);
+        index = 0;
+        positionsArray = [];
+        normalsArray = [];
+		init(2);
+	};
 
-    document.getElementById("Button6").onclick = function(){
+	document.getElementById("Button6").onclick = function(){
         numTimesToSubdivide++;
         index = 0;
         positionsArray = [];
         normalsArray = [];
-        init();
+        init(1);
     };
     document.getElementById("Button7").onclick = function(){
         if(numTimesToSubdivide) numTimesToSubdivide--;
         index = 0;
         positionsArray = [];
         normalsArray = [];
-        init();
+        init(1);
     };
 
 
